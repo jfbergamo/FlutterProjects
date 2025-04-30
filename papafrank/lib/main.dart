@@ -91,9 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         Column(
                             children:
-                                List.from([...(_quiz[_quizIdx]['sbagliate']), _quiz[_quizIdx]['giusta']]).map(
+                                [...(_quiz[_quizIdx]['sbagliate']), _quiz[_quizIdx]['giusta']]).map(
                                     (elem) => SballoButton(text: elem, primary: Colors.amber, background: Colors.deepPurple, action: (elem == _quiz[_quizIdx]['giusta']) ? _right : _wrong)
-                                ))
+                                )
                         ),
                         Column(
                             children: <Widget>[
