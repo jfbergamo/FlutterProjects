@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:papafrank/widget/sballo_button.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
     runApp(const MyApp());
@@ -31,23 +33,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
     var _questionIndex = 0;
-  	final questions = [
+  	List<Map<String, Object>> _questions = [
         {
             'question': 'Come si chiama Mandra?',
-            'answers': ['Loris', 'Noah', 'Diego'],
-            'correct': 'Gabriel',
+            'incorrect_answers': ['Loris', 'Noah', 'Diego'],
+            'correct_answer': 'Gabriel',
         },
         {
             'question': 'Chi dice WOW?',
-            'answers': ['Camilotti', 'C#', 'La D\'Apa'],
-            'correct': 'Paolino',
+            'incorrect_answers': ['Camilotti', 'C#', 'La D\'Apa'],
+            'correct_answer': 'Paolino',
         },
         {
             'question': 'Chi e\' il tuo ITP preferito?',
-            'answers': ['Zuccolo', 'Monica', 'Rotolo'],
-            'correct': 'Basso',
+            'incorrect_answers': ['Zuccolo', 'Monica', 'Rotolo'],
+            'correct_answer': 'Basso',
         },
     ];
+    
+    void _getQuestions() {
+        http.get(Uri.parse('https://quiz-6f0ba-default-rtdb.europe-west1.firebasedatabase.app/Quiz/Computers.json')).then((res) {
+            var data = json.decode(res.body);
+            
+            _questions = data['results'];
+        });
+    }
+
     int _tries = 3;
 
     List<String> _shuffle(List<String> list) {
@@ -60,7 +71,8 @@ class _MyHomePageState extends State<MyHomePage> {
     @override
     void initState() {
         super.initState();
-        _currentQuestions = _shuffle([...(questions[_questionIndex]['answers'] as List<String>), (questions[_questionIndex]['correct'] as String)]);
+        _getQuestions();
+        _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
     int _status = 7;
@@ -81,8 +93,8 @@ class _MyHomePageState extends State<MyHomePage> {
     void _nextQuestion() {
         _status = 7;
         _tries = 5;
-        setState(() => _questionIndex = (_questionIndex + 1) % questions.length);
-        _currentQuestions = _shuffle([...(questions[_questionIndex]['answers'] as List<String>), (questions[_questionIndex]['correct'] as String)]);
+        setState(() => _questionIndex = (_questionIndex + 1) % _questions.length);
+        _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
     @override
@@ -100,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                             Text(
-                                questions[_questionIndex]['question'] as String,
+                                _questions[_questionIndex]['question'] as String,
                                 style: const TextStyle(
                                     fontSize: 30
                                 ), 
@@ -109,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             .map((answer) {
                                 return SballoButton(
                                     text: answer,
-                                    action: () => _checkAnswer(answer, questions[_questionIndex]['correct'] as String),
+                                    action: () => _checkAnswer(answer, _questions[_questionIndex]['correct_answer'] as String),
                                     background: Colors.lime,
                                     primary: Colors.indigoAccent,
                                 );
