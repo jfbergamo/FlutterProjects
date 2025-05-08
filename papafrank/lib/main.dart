@@ -11,12 +11,12 @@ class MyApp extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
         return MaterialApp(
-            title: 'Flutter Demo',
+            title: 'L\'Quiz',
             theme: ThemeData(        
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
                 useMaterial3: true,
             ),
-            home: const MyHomePage(title: 'Flutter Demo Home Page'),
+            home: const MyHomePage(title: 'QUIZZZ'),
         );
     }
 }
@@ -33,21 +33,57 @@ class _MyHomePageState extends State<MyHomePage> {
     var _questionIndex = 0;
   	final questions = [
         {
-            'questionText': 'What\'s your favorite color?',
-            'answers': ['Black', 'Red', 'Green', 'White'],
-            'correct': 'Green',
+            'question': 'Come si chiama Mandra?',
+            'answers': ['Loris', 'Noah', 'Diego'],
+            'correct': 'Gabriel',
         },
         {
-            'questionText': 'What\'s your favorite animal?',
-            'answers': ['Rabbit', 'Snake', 'Elephant', 'Lion'],
-            'correct': 'Elephant',
+            'question': 'Chi dice WOW?',
+            'answers': ['Camilotti', 'C#', 'La D\'Apa'],
+            'correct': 'Paolino',
         },
         {
-            'questionText': 'Who\'s your favorite ITP instructor?',
-            'answers': ['John', 'Carl', 'Kevin', 'James'],
-            'correct': 'Kevin',
+            'question': 'Chi e\' il tuo ITP preferito?',
+            'answers': ['Zuccolo', 'Monica', 'Rotolo'],
+            'correct': 'Basso',
         },
     ];
+    int _tries = 3;
+
+    List<String> _shuffle(List<String> list) {
+        list.shuffle();
+        return list;
+    }
+
+    List<String> _currentQuestions = [];
+    
+    @override
+    void initState() {
+        super.initState();
+        _currentQuestions = _shuffle([...(questions[_questionIndex]['answers'] as List<String>), (questions[_questionIndex]['correct'] as String)]);
+    }
+
+    int _status = 7;
+    void _checkAnswer(String answer, String correctAnswer) {
+        if (_status == 1 || _status == -1) return;
+        if (answer == correctAnswer) {
+            setState(() => _status = 1);
+        } else {
+            _tries--;
+            if (_tries <= 0) {
+                setState(() => _status = -1);
+            } else {
+                setState(() => _status = 0);
+            }
+        }
+    }
+
+    void _nextQuestion() {
+        _status = 7;
+        _tries = 5;
+        setState(() => _questionIndex = (_questionIndex + 1) % questions.length);
+        _currentQuestions = _shuffle([...(questions[_questionIndex]['answers'] as List<String>), (questions[_questionIndex]['correct'] as String)]);
+    }
 
     @override
     Widget build(BuildContext context) {
@@ -64,41 +100,41 @@ class _MyHomePageState extends State<MyHomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                             Text(
-                                questions[_questionIndex]['questionText'] as String,
+                                questions[_questionIndex]['question'] as String,
                                 style: const TextStyle(
                                     fontSize: 30
                                 ), 
                             ),
-                            ...(questions[_questionIndex]['answers'] as List<String>)
+                            ..._currentQuestions
                             .map((answer) {
                                 return SballoButton(
                                     text: answer,
-                                    action: () {},
+                                    action: () => _checkAnswer(answer, questions[_questionIndex]['correct'] as String),
                                     background: Colors.lime,
                                     primary: Colors.indigoAccent,
                                 );
                             }),
                             SballoButton(
                                 text: 'Next',
-                                action: () {},
+                                action: _nextQuestion,
                                 background: Colors.cyan,
                                 primary: Colors.white,
                             ),
-                            if (true) const Text(
+                            if (_status <= 0) const Text(
                                 'Risposta errata!!!',
                                 style: TextStyle(
                                     color: Color.fromARGB(255, 236, 12, 12),
                                     fontSize: 50,
                                 ),
                             ),
-                            if (true) const Text(
+                            if (_status == 1) const Text(
                                 'Risposta corretta!!!',
                                 style: TextStyle(
                                     color: Color.fromARGB(255, 12, 206, 12),
                                     fontSize: 50,
                                 ),
                             ),
-                            if (true) const Text(
+                            if (_status == -1) const Text(
                                 'Hai esaurito i tentativi!!!',
                                 style: TextStyle(
                                     color: Color.fromARGB(255, 23, 5, 211),
@@ -109,11 +145,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                 ),
             ),
-            floatingActionButton: FloatingActionButton(
-                onPressed: () {},
-                tooltip: 'Increment',
-                child: const Icon(Icons.add),
-            )
+            // floatingActionButton: FloatingActionButton(
+            //     onPressed: () {},
+            //     tooltip: 'Increment',
+            //     child: const Icon(Icons.add),
+            // )
         );
     }
 }
