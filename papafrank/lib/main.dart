@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:papafrank/widget/sballo_button.dart';
 import 'package:http/http.dart' as http;
@@ -33,29 +35,41 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
     var _questionIndex = 0;
-  	List<Map<String, Object>> _questions = [
-        {
-            'question': 'Come si chiama Mandra?',
-            'incorrect_answers': ['Loris', 'Noah', 'Diego'],
-            'correct_answer': 'Gabriel',
-        },
-        {
-            'question': 'Chi dice WOW?',
-            'incorrect_answers': ['Camilotti', 'C#', 'La D\'Apa'],
-            'correct_answer': 'Paolino',
-        },
-        {
-            'question': 'Chi e\' il tuo ITP preferito?',
-            'incorrect_answers': ['Zuccolo', 'Monica', 'Rotolo'],
-            'correct_answer': 'Basso',
-        },
-    ];
+  	late List<Map<String, Object>> _questions;
+  	// List<Map<String, Object>> _questions = [
+    //     {
+    //         'question': 'Come si chiama Mandra?',
+    //         'incorrect_answers': ['Loris', 'Noah', 'Diego'],
+    //         'correct_answer': 'Gabriel',
+    //     },
+    //     {
+    //         'question': 'Chi dice WOW?',
+    //         'incorrect_answers': ['Camilotti', 'C#', 'La D\'Apa'],
+    //         'correct_answer': 'Paolino',
+    //     },
+    //     {
+    //         'question': 'Chi e\' il tuo ITP preferito?',
+    //         'incorrect_answers': ['Zuccolo', 'Monica', 'Rotolo'],
+    //         'correct_answer': 'Basso',
+    //     },
+    // ];
     
+    @override
+    void initState() {
+        super.initState();
+        // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
+        _getQuestions();
+    }
+
     void _getQuestions() {
         http.get(Uri.parse('https://quiz-6f0ba-default-rtdb.europe-west1.firebasedatabase.app/Quiz/Computers.json')).then((res) {
-            var data = json.decode(res.body);
-            
-            _questions = data['results'];
+            // var data = json.decode(res.body);
+
+            setState(() {
+                _questions = json.decode(res.body)['results'];
+                // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
+                // _currentQuestions = [...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)];
+            });
         });
     }
 
@@ -64,15 +78,6 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> _shuffle(List<String> list) {
         list.shuffle();
         return list;
-    }
-
-    List<String> _currentQuestions = [];
-    
-    @override
-    void initState() {
-        super.initState();
-        _getQuestions();
-        _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
     int _status = 7;
@@ -88,13 +93,59 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() => _status = 0);
             }
         }
+
+        const fontSize = 25.0;
+
+        showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                title: const Text('Attenzione'),
+                content: Column(
+                    children: <Widget> [
+                        if (_status <= 0) const Text(
+                            'Risposta errata!!!',
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 236, 12, 12),
+                                fontSize: fontSize,
+                            ),
+                        ),
+                        if (_status == 1) const Text(
+                            'Risposta corretta!!!',
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 12, 206, 12),
+                                fontSize: fontSize,
+                            ),
+                        ),
+                        if (_status == -1) const Text(
+                            'Hai esaurito i tentativi!!!',
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 23, 5, 211),
+                                fontSize: fontSize,
+                            ),
+                        )
+                    ],
+                    
+                ),
+                actions: <Widget> [
+                    TextButton(
+                        autofocus: true,
+                        child: const Text('LETSGOSKI'),
+                        onPressed: () {
+                            Navigator.of(ctx).pop(true);
+                            if (_status == 1 || _status == -1) _nextQuestion();
+                        },
+                    )
+                ],
+            )
+       );
+
     }
 
     void _nextQuestion() {
         _status = 7;
         _tries = 5;
         setState(() => _questionIndex = (_questionIndex + 1) % _questions.length);
-        _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
+        // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
     @override
@@ -117,7 +168,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     fontSize: 30
                                 ), 
                             ),
-                            ..._currentQuestions
+                            ..._shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)])
                             .map((answer) {
                                 return SballoButton(
                                     text: answer,
@@ -126,33 +177,33 @@ class _MyHomePageState extends State<MyHomePage> {
                                     primary: Colors.indigoAccent,
                                 );
                             }),
-                            SballoButton(
-                                text: 'Next',
-                                action: _nextQuestion,
-                                background: Colors.cyan,
-                                primary: Colors.white,
-                            ),
-                            if (_status <= 0) const Text(
-                                'Risposta errata!!!',
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 236, 12, 12),
-                                    fontSize: 50,
-                                ),
-                            ),
-                            if (_status == 1) const Text(
-                                'Risposta corretta!!!',
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 12, 206, 12),
-                                    fontSize: 50,
-                                ),
-                            ),
-                            if (_status == -1) const Text(
-                                'Hai esaurito i tentativi!!!',
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 23, 5, 211),
-                                    fontSize: 50,
-                                ),
-                            )
+                            // SballoButton(
+                            //     text: 'Next',
+                            //     action: _nextQuestion,
+                            //     background: Colors.cyan,
+                            //     primary: Colors.white,
+                            // ),
+                            // if (_status <= 0) const Text(
+                            //     'Risposta errata!!!',
+                            //     style: TextStyle(
+                            //         color: Color.fromARGB(255, 236, 12, 12),
+                            //         fontSize: 50,
+                            //     ),
+                            // ),
+                            // if (_status == 1) const Text(
+                            //     'Risposta corretta!!!',
+                            //     style: TextStyle(
+                            //         color: Color.fromARGB(255, 12, 206, 12),
+                            //         fontSize: 50,
+                            //     ),
+                            // ),
+                            // if (_status == -1) const Text(
+                            //     'Hai esaurito i tentativi!!!',
+                            //     style: TextStyle(
+                            //         color: Color.fromARGB(255, 23, 5, 211),
+                            //         fontSize: 50,
+                            //     ),
+                            // )
                         ],
                     ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:html/dom.dart' as htmlParser;
 
 class SballoButton extends StatelessWidget {
     
@@ -11,7 +12,7 @@ class SballoButton extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
-        return Container(
+        return SizedBox(
             width: double.infinity,
             child: ElevatedButton(
                 onPressed: action,
@@ -20,7 +21,7 @@ class SballoButton extends StatelessWidget {
                     backgroundColor: background,
                     foregroundColor: primary
                 ),
-                child: Text(text)
+                child: Text(htmlParser.DocumentFragment.html(text).text.toString())
             )
         );
     }
