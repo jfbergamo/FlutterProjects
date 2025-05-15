@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:papafrank/widget/sballo_button.dart';
 import 'package:http/http.dart' as http;
@@ -33,64 +31,54 @@ class MyHomePage extends StatefulWidget {
     State<MyHomePage> createState() => _MyHomePageState();
 }
 
+const defaultTries = 3;
+
 class _MyHomePageState extends State<MyHomePage> {
     var _questionIndex = 0;
-  	late List<Map<String, Object>> _questions;
-  	// List<Map<String, Object>> _questions = [
-    //     {
-    //         'question': 'Come si chiama Mandra?',
-    //         'incorrect_answers': ['Loris', 'Noah', 'Diego'],
-    //         'correct_answer': 'Gabriel',
-    //     },
-    //     {
-    //         'question': 'Chi dice WOW?',
-    //         'incorrect_answers': ['Camilotti', 'C#', 'La D\'Apa'],
-    //         'correct_answer': 'Paolino',
-    //     },
-    //     {
-    //         'question': 'Chi e\' il tuo ITP preferito?',
-    //         'incorrect_answers': ['Zuccolo', 'Monica', 'Rotolo'],
-    //         'correct_answer': 'Basso',
-    //     },
-    // ];
-    
+    List<int> _questionIndexes = [];
+  	late var _questions;
+    bool _reload = true;
+    // final url = 'https://quiz-6f0ba-default-rtdb.europe-west1.firebasedatabase.app/Quiz/Computers.json'
+    final url = 'https://opentdb.com/api.php?amount=10&category=9&difficulty=medium&type=multiple';
+    // late var _currentQuestions;
+
     @override
     void initState() {
         super.initState();
-        // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
         _getQuestions();
     }
 
     void _getQuestions() {
-        http.get(Uri.parse('https://quiz-6f0ba-default-rtdb.europe-west1.firebasedatabase.app/Quiz/Computers.json')).then((res) {
-            // var data = json.decode(res.body);
+        http.get(Uri.parse(url)).then((res) {
 
             setState(() {
                 _questions = json.decode(res.body)['results'];
-                // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
-                // _currentQuestions = [...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)];
+                // _questionIndexes = List.generate(_questions.length(), (i) => i);
             });
         });
     }
 
-    int _tries = 3;
+    int _tries = defaultTries;
 
     List<String> _shuffle(List<String> list) {
-        list.shuffle();
+        if (_reload) {
+            list.shuffle();
+            _reload = false;
+        }
         return list;
     }
 
     int _status = 7;
     void _checkAnswer(String answer, String correctAnswer) {
-        if (_status == 1 || _status == -1) return;
+        // if (_status == 1 || _status == -1) return;
         if (answer == correctAnswer) {
-            setState(() => _status = 1);
+            _status = 1;
         } else {
             _tries--;
             if (_tries <= 0) {
-                setState(() => _status = -1);
+                _status = -1;
             } else {
-                setState(() => _status = 0);
+                _status = 0;
             }
         }
 
@@ -101,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
             builder: (ctx) => AlertDialog(
                 title: const Text('Attenzione'),
                 content: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget> [
                         if (_status <= 0) const Text(
                             'Risposta errata!!!',
@@ -144,7 +133,8 @@ class _MyHomePageState extends State<MyHomePage> {
     void _nextQuestion() {
         _status = 7;
         _tries = 5;
-        setState(() => _questionIndex = (_questionIndex + 1) % _questions.length);
+        _reload = true;
+        setState(() => _questionIndex = (_questionIndex + 1) % [..._questions].length);
         // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
@@ -168,7 +158,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     fontSize: 30
                                 ), 
                             ),
-                            ..._shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)])
+                            // ..._currentQuestions
+                            ..._shuffle([...(_questions[_questionIndex]['incorrect_answers'].map<String>((item) => item.toString())), (_questions[_questionIndex]['correct_answer'] as String)])
                             .map((answer) {
                                 return SballoButton(
                                     text: answer,
