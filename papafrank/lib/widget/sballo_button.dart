@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:html/dom.dart' as htmlParser;
+import 'package:html/dom.dart' as parser;
 
 class SballoButton extends StatelessWidget {
     
@@ -21,7 +21,7 @@ class SballoButton extends StatelessWidget {
                     backgroundColor: background,
                     foregroundColor: primary
                 ),
-                child: Text(htmlParser.DocumentFragment.html(text).text.toString())
+                child: Text(parser.DocumentFragment.html(text).text.toString())
             )
         );
     }

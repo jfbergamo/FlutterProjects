@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:papafrank/widget/sballo_button.dart';
 import 'package:http/http.dart' as http;
+import 'package:html/dom.dart' as parser;
 import 'dart:convert';
+
+// import 'package:audioplayers/audio_cache.dart';
 
 void main() {
     runApp(const MyApp());
@@ -31,16 +34,20 @@ class MyHomePage extends StatefulWidget {
     State<MyHomePage> createState() => _MyHomePageState();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const defaultTries = 3;
 
 class _MyHomePageState extends State<MyHomePage> {
     var _questionIndex = 0;
-    List<int> _questionIndexes = [];
   	late var _questions;
     bool _reload = true;
-    // final url = 'https://quiz-6f0ba-default-rtdb.europe-west1.firebasedatabase.app/Quiz/Computers.json'
     final url = 'https://opentdb.com/api.php?amount=10&category=9&difficulty=medium&type=multiple';
-    // late var _currentQuestions;
+
+    /////////////// INIT ///////////////
+
+    int _status = 7;
+    int _tries = defaultTries;
 
     @override
     void initState() {
@@ -53,24 +60,51 @@ class _MyHomePageState extends State<MyHomePage> {
 
             setState(() {
                 _questions = json.decode(res.body)['results'];
-                // _questionIndexes = List.generate(_questions.length(), (i) => i);
             });
         });
     }
 
-    int _tries = defaultTries;
+    ///////////////////// MAIN LOOP /////////////////////
 
-    List<String> _shuffle(List<String> list) {
-        if (_reload) {
-            list.shuffle();
-            _reload = false;
-        }
-        return list;
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+            appBar: AppBar(
+                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                title: Text(widget.title),
+            ),
+            body: Container(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                width: double.infinity,
+                child: Center(          
+                    child: Column(            
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                            Text(
+                                parser.DocumentFragment.html(_questions[_questionIndex]['question'] as String).text.toString(),
+                                style: const TextStyle(
+                                    fontSize: 30
+                                ), 
+                            ),
+                            ..._shuffle([...(_questions[_questionIndex]['incorrect_answers'].map<String>((item) => item.toString())), (_questions[_questionIndex]['correct_answer'] as String)])
+                            .map((answer) {
+                                return SballoButton(
+                                    text: answer,
+                                    action: () => _checkAnswer(answer, _questions[_questionIndex]['correct_answer'] as String),
+                                    background: Colors.lime,
+                                    primary: Colors.indigoAccent,
+                                );
+                            })
+                        ]
+                    ),
+                ),
+            )
+        );
     }
 
-    int _status = 7;
+    ///////////////////// MAIN FUNCTIONS /////////////////////
+
     void _checkAnswer(String answer, String correctAnswer) {
-        // if (_status == 1 || _status == -1) return;
         if (answer == correctAnswer) {
             _status = 1;
         } else {
@@ -135,75 +169,16 @@ class _MyHomePageState extends State<MyHomePage> {
         _tries = 5;
         _reload = true;
         setState(() => _questionIndex = (_questionIndex + 1) % [..._questions].length);
-        // _currentQuestions = _shuffle([...(_questions[_questionIndex]['incorrect_answers'] as List<String>), (_questions[_questionIndex]['correct_answer'] as String)]);
     }
 
-    @override
-    Widget build(BuildContext context) {
-        return Scaffold(
-            appBar: AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
-            ),
-            body: Container(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                width: double.infinity,
-                child: Center(          
-                    child: Column(            
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                            Text(
-                                _questions[_questionIndex]['question'] as String,
-                                style: const TextStyle(
-                                    fontSize: 30
-                                ), 
-                            ),
-                            // ..._currentQuestions
-                            ..._shuffle([...(_questions[_questionIndex]['incorrect_answers'].map<String>((item) => item.toString())), (_questions[_questionIndex]['correct_answer'] as String)])
-                            .map((answer) {
-                                return SballoButton(
-                                    text: answer,
-                                    action: () => _checkAnswer(answer, _questions[_questionIndex]['correct_answer'] as String),
-                                    background: Colors.lime,
-                                    primary: Colors.indigoAccent,
-                                );
-                            }),
-                            // SballoButton(
-                            //     text: 'Next',
-                            //     action: _nextQuestion,
-                            //     background: Colors.cyan,
-                            //     primary: Colors.white,
-                            // ),
-                            // if (_status <= 0) const Text(
-                            //     'Risposta errata!!!',
-                            //     style: TextStyle(
-                            //         color: Color.fromARGB(255, 236, 12, 12),
-                            //         fontSize: 50,
-                            //     ),
-                            // ),
-                            // if (_status == 1) const Text(
-                            //     'Risposta corretta!!!',
-                            //     style: TextStyle(
-                            //         color: Color.fromARGB(255, 12, 206, 12),
-                            //         fontSize: 50,
-                            //     ),
-                            // ),
-                            // if (_status == -1) const Text(
-                            //     'Hai esaurito i tentativi!!!',
-                            //     style: TextStyle(
-                            //         color: Color.fromARGB(255, 23, 5, 211),
-                            //         fontSize: 50,
-                            //     ),
-                            // )
-                        ],
-                    ),
-                ),
-            ),
-            // floatingActionButton: FloatingActionButton(
-            //     onPressed: () {},
-            //     tooltip: 'Increment',
-            //     child: const Icon(Icons.add),
-            // )
-        );
+
+    ///////////////////// UTILS /////////////////////
+
+    List<String> _shuffle(List<String> list) {
+        if (_reload) {
+            list.shuffle();
+            _reload = false;
+        }
+        return list;
     }
 }
