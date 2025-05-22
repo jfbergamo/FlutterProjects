@@ -3,8 +3,7 @@ import 'package:papafrank/widget/sballo_button.dart';
 import 'package:http/http.dart' as http;
 import 'package:html/dom.dart' as parser;
 import 'dart:convert';
-
-// import 'package:audioplayers/audio_cache.dart';
+import 'package:just_audio/just_audio.dart';
 
 void main() {
     runApp(const MyApp());
@@ -49,10 +48,13 @@ class _MyHomePageState extends State<MyHomePage> {
     int _status = 7;
     int _tries = defaultTries;
 
+    final player = AudioPlayer();
+
     @override
     void initState() {
         super.initState();
         _getQuestions();
+        player.setAsset("sounds/xbox.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.one));
     }
 
     void _getQuestions() {
