@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:papafrank/widget/sballo_button.dart';
 import 'package:http/http.dart' as http;
@@ -48,13 +50,16 @@ class _MyHomePageState extends State<MyHomePage> {
     int _status = 7;
     int _tries = defaultTries;
 
+    var _secs = "";
+
     final player = AudioPlayer();
 
     @override
     void initState() {
         super.initState();
         _getQuestions();
-        player.setAsset("sounds/mandra.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.all));
+        player.setAsset("sounds/xbox.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.all));
+        _timer(Duration(seconds: 60), () {});
     }
 
     void _getQuestions() {
@@ -82,6 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(            
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
+                            Text(_secs),
                             Text(
                                 parser.DocumentFragment.html(_questions[_questionIndex]['question'] as String).text.toString(),
                                 style: const TextStyle(
@@ -173,6 +179,17 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() => _questionIndex = (_questionIndex + 1) % [..._questions].length);
     }
 
+    Future<void> _timer(Duration secs, Function() onTime) async {
+        const one = Duration(seconds: 1);
+        while (secs > Duration.zero) {
+            sleep(one);
+            onTime();
+            setState(() {
+                _secs = secs.toString();
+            });
+            secs -= one;
+        }
+    }
 
     ///////////////////// UTILS /////////////////////
 
