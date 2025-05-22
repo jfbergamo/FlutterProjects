@@ -54,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
     void initState() {
         super.initState();
         _getQuestions();
-        player.setAsset("sounds/xbox.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.one));
+        player.setAsset("sounds/mandra.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.all));
     }
 
     void _getQuestions() {
