@@ -187,7 +187,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                         )
                     ],
-                    
                 ),
                 actions: <Widget> [
                     TextButton(
