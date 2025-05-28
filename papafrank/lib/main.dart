@@ -59,7 +59,6 @@ class _MyHomePageState extends State<MyHomePage> {
         super.initState();
         _getQuestions();
         player.setAsset("sounds/xbox.mp3").then((_) => player.play()).then((_) => player.setLoopMode(LoopMode.all));
-        _timer(Duration(seconds: 60), () {});
     }
 
     void _getQuestions() {
@@ -182,11 +181,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Future<void> _timer(Duration secs, Function() onTime) async {
         const one = Duration(seconds: 1);
         while (secs > Duration.zero) {
-            sleep(one);
+            await Future.delayed(one);
             onTime();
-            setState(() {
-                _secs = secs.toString();
-            });
             secs -= one;
         }
     }
